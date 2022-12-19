@@ -53,7 +53,7 @@ var after = ""
 while true: # poc - replace with while loop
     # Max limit per request seems to be 100 (3 for now for debugging)
     # https://www.reddit.com/dev/api#GET_user_{username}_saved
-    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={reddit_post_count}&show=all")
+    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={reddit_post_count}&show=all?raw_json=1")
     # TODO: Add error-handling
 
     let saved_posts = response.parseJson()["data"]["children"]
