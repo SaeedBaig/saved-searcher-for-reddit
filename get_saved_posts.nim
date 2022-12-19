@@ -48,26 +48,40 @@ client.headers = newHttpHeaders({
 
 # Finally can get saved posts
 echo "Fetching saved posts now..."
-
-var total_num_reddit_posts = 0
+var reddit_post_count = 0
 var after = ""
-for i in 1..3: # poc - replace with while loop
+while true: # poc - replace with while loop
     # Max limit per request seems to be 100 (3 for now for debugging)
     # https://www.reddit.com/dev/api#GET_user_{username}_saved
-    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=3&after={after}&count={total_num_reddit_posts}")
+    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={reddit_post_count}&show=all")
+    # TODO: Add error-handling
 
     let saved_posts = response.parseJson()["data"]["children"]
-    after = response.parseJson()["data"]["after"].getStr()
-    echo fmt"after = '{after}'"    # TODO: Look into debugEcho
-
     for post_object in saved_posts:
         let post = post_object["data"]
+
         echo()
+        inc(reddit_post_count)
+        echo fmt"#{reddit_post_count}"
         echo post["subreddit_name_prefixed"].getStr()
-        echo post["title"]  # dont convert from JSON->string for free double quotes
         echo fmt"https://www.reddit.com{post[""permalink""].getStr()}"
+        echo post["title"]  # dont convert from JSON->string for free double quotes
+        #if "title" in post: echo post["title"]
+        #[ 
+           TODO: Why do these saved posts not have a "title"?
+           https://www.reddit.com/r/goodanimemes/comments/z7wnn9/oddly_wholesome/
+           https://www.reddit.com/r/goodanimemes/comments/z7wnn9/comment/iy8ldwb/
+
+           2nd one is probs because it's a comment and thus has no "title".
+           But why the first? Cause it's NSFW? ...
+        ]#
+
         echo()
         # TODO: Refactor printing into seperate proc
-    total_num_reddit_posts += saved_posts.len
-    
-echo fmt"total_num_reddit_posts = {total_num_reddit_posts}"
+    #reddit_post_count += saved_posts.len
+    echo fmt"Total #reddit-posts so far = {reddit_post_count}"
+
+    after = response.parseJson()["data"]["after"].getStr()
+    if after == "":
+        break
+    debugEcho fmt"after = '{after}'"
