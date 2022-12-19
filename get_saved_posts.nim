@@ -5,6 +5,15 @@
 
 import std/[httpclient, json, base64, strformat]
 
+type RedditPost = object
+    sub: string
+    displayText: string
+    url: string
+
+# Helper functions
+proc parsePostObjects(post_objects: JsonNode): seq[RedditPost]
+proc printPostDetails(id_num: int, post: RedditPost)
+
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME          = "SavedSearcher/0.0.1"
 # From your personal app you created: https://www.reddit.com/prefs/apps
@@ -12,11 +21,15 @@ const APP_ID            = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use scr
 const APP_SECRET        = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
 
-# Prompt for Reddit username & password (stdout.write instead of echo so no newline)
+
+## main
+# Prompt for Reddit username, password and target subreddit (stdout.write instead of echo so no newline)
 stdout.write "Enter your Reddit username: "
 let Reddit_username = readLine(stdin)
 stdout.write "Enter your Reddit password: "
 let Reddit_password = readLine(stdin)
+stdout.write "Which subreddit do you want to search from your saved posts? r/"
+let target_sub = readLine(stdin)
 
 #[ Setup our header info:
    - A brief description of our app
@@ -40,7 +53,6 @@ client.headers = newHttpHeaders({
     "User-Agent": APP_NAME,
     "Authorization": fmt"bearer {token}"
 })
-# TODO: Is this assignment to newHttpHeaders() a memory leak of the old headers?
 
 # POC
 #let thingy = new_client.getContent("https://oauth.reddit.com/api/v1/me")
@@ -56,27 +68,12 @@ while true:
     let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={reddit_post_count}&show=all?raw_json=1")
     # TODO: Add error-handling
 
-    let saved_posts = response.parseJson()["data"]["children"]
-    for post_object in saved_posts:
-        let post_type = post_object["kind"].getStr()
-        let post = post_object["data"]
-
-        # TODO: Refactor printing into seperate proc
-        echo()
+    let saved_posts = parsePostObjects(response.parseJson()["data"]["children"])
+    for post in saved_posts:
         inc(reddit_post_count)
-        echo fmt"#{reddit_post_count}"
-        echo post["subreddit_name_prefixed"].getStr()
-
-        # Dont convert from JSON to string (for free double quotes)
-        if post_type == "t3":   # Link (normal post) (TODO make enum)
-            echo post["title"]
-        elif post_type == "t1": # Comment
-            echo post["body"]
-
-        echo fmt"https://www.reddit.com{post[""permalink""].getStr()}"
-        echo()
-
-    echo fmt"Total #reddit-posts so far = {reddit_post_count}"
+        if post.sub == fmt"r/{target_sub}":
+            print_post_details(reddit_post_count, post)
+    echo fmt"Total reddit posts so far: {reddit_post_count}"
 
     after = response.parseJson()["data"]["after"].getStr()
     if after == "":
@@ -84,3 +81,30 @@ while true:
         break
     echo "Fetching more posts..."
     #debugEcho fmt"after = '{after}'"
+
+
+
+proc parsePostObjects(post_objects: JsonNode): seq[RedditPost] =
+    var ret: seq[RedditPost]
+
+    for post_object in post_objects:
+        let post = post_object["data"]
+        let post_type = post_object["kind"].getStr()
+
+        ret.add(RedditPost(
+            sub: post["subreddit_name_prefixed"].getStr(), 
+            displayText: (if post_type == "t3": post["title"].getStr() elif post_type == "t1": post["body"].getStr() else: "ERROR: Not link or comment"),
+            url: fmt"https://www.reddit.com{post[""permalink""].getStr()}"
+        ))
+
+    return ret
+
+
+
+proc printPostDetails(id_num: int, post: RedditPost) =
+    echo()
+    echo fmt"#{id_num}"
+    echo post.sub
+    echo "\"" & post.displayText & "\""
+    echo post.url
+    echo()
