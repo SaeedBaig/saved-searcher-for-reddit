@@ -1,5 +1,5 @@
 #[
-Get my saved Reddit posts via Reddit's official REST API
+Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 (compile with flag `-d:ssl` so the HTTP-POST requests work)
 ]#
 
