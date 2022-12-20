@@ -3,11 +3,15 @@
   Compile with flag `-d:ssl` so the POST requests work
 ]#
 
-import std/[httpclient, json, base64, strformat]
+import std/[httpclient, json]
+from base64 import encode
+from strformat import fmt
+from strutils import isEmptyOrWhitespace
 
+# Helper object to encapsulate the relevant post details we want to display
 type RedditPost = object
-    sub: string
-    displayText: string
+    sub: string   # subreddit
+    main_text: string
     url: string
 
 # Helper functions
@@ -15,21 +19,22 @@ proc parsePostObjects(post_objects: JsonNode): seq[RedditPost]
 proc printPostDetails(id_num: int, post: RedditPost)
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
-const APP_NAME          = "SavedSearcher/0.0.1"
+const APP_NAME      = "SavedSearcher/0.0.1"
 # From your personal app you created: https://www.reddit.com/prefs/apps
-const APP_ID            = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
-const APP_SECRET        = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
+const APP_ID        = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
+const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
 
 
 ## main
+## 
 # Prompt for Reddit username, password and target subreddit (stdout.write instead of echo so no newline)
 stdout.write "Enter your Reddit username: "
 let Reddit_username = readLine(stdin)
 stdout.write "Enter your Reddit password: "
 let Reddit_password = readLine(stdin)
 stdout.write "Which subreddit do you want to search from your saved posts? r/"
-let target_sub = readLine(stdin)
+let target_sub = "r/" & readLine(stdin)
 
 #[ Setup our header info:
    - A brief description of our app
@@ -60,23 +65,27 @@ client.headers = newHttpHeaders({
 
 # Finally can get saved posts
 echo "Fetching saved posts now..."
-var reddit_post_count = 0
+var num_fetched_posts = 0
+var num_matched_posts = 0
 var after = ""
 while true:
     # Max limit per request seems to be 100
     # https://www.reddit.com/dev/api#GET_user_{username}_saved
-    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={reddit_post_count}&show=all?raw_json=1")
+    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={num_fetched_posts}&show=all?raw_json=1")
     # TODO: Add error-handling
 
+    # Print saved posts of the target subreddit
     let saved_posts = parsePostObjects(response.parseJson()["data"]["children"])
     for post in saved_posts:
-        inc(reddit_post_count)
-        if post.sub == fmt"r/{target_sub}":
-            print_post_details(reddit_post_count, post)
-    echo fmt"Total reddit posts so far: {reddit_post_count}"
+        if post.sub == target_sub:
+            inc(num_matched_posts)
+            printPostDetails(num_matched_posts, post)
+    num_fetched_posts += saved_posts.len
+    echo fmt"Total reddit posts scanned so far: {num_fetched_posts}"
 
+    # Update `after` for next fetch request
     after = response.parseJson()["data"]["after"].getStr()
-    if after == "":
+    if after.isEmptyOrWhitespace():   # All done - no more saved posts to fetch
         echo "All done. Bye :)"
         break
     echo "Fetching more posts..."
@@ -93,7 +102,7 @@ proc parsePostObjects(post_objects: JsonNode): seq[RedditPost] =
 
         ret.add(RedditPost(
             sub: post["subreddit_name_prefixed"].getStr(), 
-            displayText: (if post_type == "t3": post["title"].getStr() elif post_type == "t1": post["body"].getStr() else: "ERROR: Not link or comment"),
+            main_text: (if post_type == "t3": post["title"].getStr() elif post_type == "t1": post["body"].getStr() else: "ERROR: Not link or comment"),
             url: fmt"https://www.reddit.com{post[""permalink""].getStr()}"
         ))
 
@@ -105,6 +114,6 @@ proc printPostDetails(id_num: int, post: RedditPost) =
     echo()
     echo fmt"#{id_num}"
     echo post.sub
-    echo "\"" & post.displayText & "\""
+    echo "\"" & post.main_text & "\""   # Surround with double-quotes
     echo post.url
     echo()
