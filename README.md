@@ -14,7 +14,6 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 ```
 
 TODO:
-- Turn into REPL so can make multiple searches (maybe use hashmap of subreddit-names to saved-posts for faster searching)
 - Make search substring and case-insensitive by default (e.g. searching "linux" will show saved posts from all subreddits with "linux" in their name)
 - Expand search to not just subreddit but also post-text
 - Add filter by subreddit or post-text (or both)
