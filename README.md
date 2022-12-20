@@ -1,4 +1,4 @@
-# Saved Post Searcher For Reddit
+# Saved-Post Searcher For Reddit
 A simple app to search your saved Reddit posts (WIP)
 
 Compile with Nim >=1.6.10:
