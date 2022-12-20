@@ -14,6 +14,9 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 ```
 
 TODO:
-- Add argument-parsing to use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit`)
-- Make binary releases for different platforms (so users don't have to compile it themselves)
-- GUI app with search bar and previews and stuff instead of little CLI script
+- Turn into REPL so can make multiple searches (maybe use hashmap of subreddit-names to saved-posts for faster searching)
+- Add argument-parsing to alternatively use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit1 subreddit2 subreddit 3 ...`)
+- Add `-h` flag for help
+- Add `-q` (quiet) flag for no extraneous output (for piping, dumping output to file, etc)
+- Make binary releases for different platforms so users don't have to compile it themselves (don't forget to compile with `-d:release`!)
+- (one day) GUI app with search bar and image-previews and stuff
