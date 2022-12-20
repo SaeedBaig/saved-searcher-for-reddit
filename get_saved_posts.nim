@@ -73,7 +73,7 @@ when isMainModule:
     while true:
         # Max limit per request seems to be 100 (https://www.reddit.com/dev/api#GET_user_{username}_saved)
         # TODO Add explanation of all URL params
-        let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={num_fetched_posts}&show=all?raw_json=1")
+        let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={num_fetched_posts}&show=all&raw_json=1")
         # TODO: Add error-handling
 
         let json_data = response.parseJson()["data"]
