@@ -1,6 +1,6 @@
 #[
-  Get my saved Reddit posts via Reddit's official REST API
-  Compile with flag `-d:ssl` so the POST requests work
+Get my saved Reddit posts via Reddit's official REST API
+Compile with flag `-d:ssl` so the POST requests work
 ]#
 
 import std/[httpclient, json]
@@ -20,76 +20,75 @@ proc printPostDetails(id_num: int, post: RedditPost)
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
-# From your personal app you created: https://www.reddit.com/prefs/apps
+# From your personal app you created (https://www.reddit.com/prefs/apps):
 const APP_ID        = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
 const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
 
+when isMainModule:
+    # Prompt for Reddit username, password and target subreddit (stdout.write instead of echo so no newline)
+    stdout.write "Enter your Reddit username: "
+    let Reddit_username = readLine(stdin)
+    stdout.write "Enter your Reddit password: "
+    let Reddit_password = readLine(stdin)
+    stdout.write "Which subreddit do you want to search from your saved posts? r/"
+    let target_sub = "r/" & readLine(stdin)
 
-## main
-## 
-# Prompt for Reddit username, password and target subreddit (stdout.write instead of echo so no newline)
-stdout.write "Enter your Reddit username: "
-let Reddit_username = readLine(stdin)
-stdout.write "Enter your Reddit password: "
-let Reddit_password = readLine(stdin)
-stdout.write "Which subreddit do you want to search from your saved posts? r/"
-let target_sub = "r/" & readLine(stdin)
+    #[ Setup our header info:
+    - A brief description of our app
+    - HTTP Basic Auth with the Reddit-dev secrets ("Basic <CLIENT ID>:<CLIENT SECRET>") ]#
+    let client = newHttpClient()
+    client.headers = newHttpHeaders({
+        "User-Agent": APP_NAME,
+        "Authorization": "Basic " & base64.encode(fmt"{APP_ID}:{APP_SECRET}")
+    })
 
-#[ Setup our header info:
-   - A brief description of our app
-   - HTTP Basic Auth with the Reddit-dev secrets ("Basic <CLIENT ID>:<CLIENT SECRET>") ]#
-let client = newHttpClient()
-client.headers = newHttpHeaders({
-    "User-Agent": APP_NAME,
-    "Authorization": "Basic " & base64.encode(fmt"{APP_ID}:{APP_SECRET}")
-})
+    # Send our request for an OAuth token (valid for ~2 hours)
+    # TODO: Add error-handling for when username/password incorrect
+    let token = client.postContent(
+        "https://www.reddit.com/api/v1/access_token",
+        multipart=newMultipartData({"grant_type":"password", "username":Reddit_username, "password":Reddit_password})
+    ).parseJson()["access_token"].getStr()
+    #debugEcho fmt"token = {token}"
 
-# Send our request for an OAuth token (valid for ~2 hours)
-# TODO: Add error-handling for when username/password incorrect
-let token = client.postContent(
-    "https://www.reddit.com/api/v1/access_token",
-    multipart=newMultipartData({"grant_type":"password", "username":Reddit_username, "password":Reddit_password})
-).parseJson()["access_token"].getStr()
-#debugEcho fmt"token = {token}"
+    # Reset headers (otherwise the multipart data screws up GET request) and set new authorisation with token
+    client.headers = newHttpHeaders({
+        "User-Agent": APP_NAME,
+        "Authorization": fmt"bearer {token}"
+    })
 
-# Reset headers (otherwise the multipart data screws up GET request) and set new authorisation with token
-client.headers = newHttpHeaders({
-    "User-Agent": APP_NAME,
-    "Authorization": fmt"bearer {token}"
-})
+    # POC
+    #let thingy = new_client.getContent("https://oauth.reddit.com/api/v1/me")
+    #debugEcho fmt"thingy = {thingy}"
 
-# POC
-#let thingy = new_client.getContent("https://oauth.reddit.com/api/v1/me")
-#echo fmt"thingy = {thingy}"
+    # Finally can get saved posts
+    echo "Fetching saved posts now..."
+    var num_fetched_posts = 0
+    var num_matched_posts = 0
+    var after = ""
+    # Can only fetch a limited number of posts at a time, so keep fetching til we get the `after` field to stop
+    while true:
+        # Max limit per request seems to be 100
+        # https://www.reddit.com/dev/api#GET_user_{username}_saved
+        let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={num_fetched_posts}&show=all?raw_json=1")
+        # TODO: Add error-handling
 
-# Finally can get saved posts
-echo "Fetching saved posts now..."
-var num_fetched_posts = 0
-var num_matched_posts = 0
-var after = ""
-while true:
-    # Max limit per request seems to be 100
-    # https://www.reddit.com/dev/api#GET_user_{username}_saved
-    let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={num_fetched_posts}&show=all?raw_json=1")
-    # TODO: Add error-handling
+        # Print saved posts that match the target subreddit
+        let saved_posts = parsePostObjects(response.parseJson()["data"]["children"])
+        for post in saved_posts:
+            if post.sub == target_sub:
+                inc(num_matched_posts)
+                printPostDetails(num_matched_posts, post)
+        num_fetched_posts += saved_posts.len
+        echo fmt"Total reddit posts scanned so far: {num_fetched_posts}"
 
-    # Print saved posts of the target subreddit
-    let saved_posts = parsePostObjects(response.parseJson()["data"]["children"])
-    for post in saved_posts:
-        if post.sub == target_sub:
-            inc(num_matched_posts)
-            printPostDetails(num_matched_posts, post)
-    num_fetched_posts += saved_posts.len
-    echo fmt"Total reddit posts scanned so far: {num_fetched_posts}"
-
-    # Update `after` for next fetch request
-    after = response.parseJson()["data"]["after"].getStr()
-    if after.isEmptyOrWhitespace():   # All done - no more saved posts to fetch
-        echo "All done. Bye :)"
-        break
-    echo "Fetching more posts..."
-    #debugEcho fmt"after = '{after}'"
+        # Update `after` for next fetch request
+        after = response.parseJson()["data"]["after"].getStr()
+        if after.isEmptyOrWhitespace():   # All done - no more saved posts to fetch
+            echo "All done. Bye :)"
+            break
+        echo "Fetching more posts..."
+        #debugEcho fmt"after = '{after}'"
 
 
 
@@ -97,6 +96,11 @@ proc parsePostObjects(post_objects: JsonNode): seq[RedditPost] =
     var ret: seq[RedditPost]
 
     for post_object in post_objects:
+        #[ There's apparently not much official documentation on Reddit's JSON; the best there is is this
+        archived wiki last edited in 2016: https://github.com/reddit-archive/reddit/wiki/JSON
+        The best you can do is to glean what you can from the official docs and to 
+        paste your own saved-posts JSON file ( https://www.reddit.com/user/{username}/saved.json ) 
+        into a JSON-formatter and grok what the fields mean ]#
         let post = post_object["data"]
         let post_type = post_object["kind"].getStr()
 
