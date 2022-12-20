@@ -66,21 +66,20 @@ when isMainModule:
 
     # Finally can get saved posts
     echo "Fetching saved posts. This may take a moment..."
-    var num_fetched_posts = 0
     var after = ""
     var saved_posts: seq[RedditPost]
     # Can only fetch a limited number of posts at a time, so keep fetching til we recieve the `after` field to stop
     while true:
-        # Max limit per request seems to be 100 (TODO Add explanation of all URL params)
+        # Fetch saved posts (max limit per request seems to be 100)
         # https://www.reddit.com/dev/api
-        let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={num_fetched_posts}&show=all&raw_json=1")
+        # TODO Add explanation of all URL params
+        let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={saved_posts.len}&show=all&raw_json=1")
         # TODO: Add error-handling
 
+        # Read them into our list
         let json_data = response.parseJson()["data"]
-        let old_saved_post_len = saved_posts.len
         readPostObjectsIntoList(json_data, saved_posts)
-        num_fetched_posts += saved_posts.len - old_saved_post_len
-        stdout.write fmt"Total posts fetched so far: {num_fetched_posts}. "
+        stdout.write fmt"Fetched {saved_posts.len} posts so far. "
 
         # Update `after` for next fetch request
         after = json_data["after"].getStr()
@@ -88,6 +87,7 @@ when isMainModule:
             break
         echo "Fetching more..."
         #debugEcho fmt"after = '{after}'"
+
     echo()
     echo "All saved posts fetched - time to start searching"
     echo()
