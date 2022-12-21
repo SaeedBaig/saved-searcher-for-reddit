@@ -20,7 +20,7 @@ type RedditEntity = enum
 
 # Helper functions
 proc readPostObjectsIntoList(json_body: JsonNode, output_list: var seq[RedditPost])
-proc printPostDetails(id_num: int, post: RedditPost)
+proc printPostDetailsMatching(sub: string, posts: seq[RedditPost])
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
@@ -46,8 +46,8 @@ when isMainModule:
     })
 
     # Send our request for an OAuth token (valid for ~2 hours)
-    # Since we fetch all the saved posts from the start and don't really need to access the API after that, token expiry
-    # shouldn't really be a problem
+    # Since we fetch all the saved posts into memory ASAP and don't need to access the API afterwards, token 
+    # expiry shouldn't be a problem
     let token = client.postContent(
         "https://www.reddit.com/api/v1/access_token",
         multipart=newMultipartData({"grant_type":"password", "username":Reddit_username, "password":Reddit_password})
@@ -65,7 +65,7 @@ when isMainModule:
     #debugEcho fmt"thingy = {thingy}"
 
     # Finally can get saved posts
-    echo "Fetching saved posts. This may take a moment..."
+    echo "Fetching your saved posts. This may take a moment..."
     var after = ""
     var saved_posts: seq[RedditPost]
     # Can only fetch a limited number of posts at a time, so keep fetching til we recieve the `after` field to stop
@@ -85,6 +85,7 @@ when isMainModule:
         after = json_data["after"].getStr()
         if after.isEmptyOrWhitespace():   # All done - no more saved posts to fetch
             break
+        # else
         echo "Fetching more..."
         #debugEcho fmt"after = '{after}'"
 
@@ -94,22 +95,11 @@ when isMainModule:
 
     # REPL
     while true:
-        # Prompt for target sub (TODO: Add Ctrl+C handling for graceful exit)
         stdout.write "Which subreddit do you want to search from your saved posts (Ctrl+C to quit)? r/"
+        # TODO: Add Ctrl+C handling for graceful exit
         let target_sub = "r/" & readLine(stdin)
-    
-        # Print saved posts from target subreddit
-        var num_matched = 0   # for numbering output
-        for post in saved_posts:
-            if post.sub == target_sub:
-                inc(num_matched)
-                printPostDetails(num_matched, post)
-        echo "(end)"
+        printPostDetailsMatching(target_sub, saved_posts)
         echo()
-        #[ I had considered doing something more advanced like using a hashmap of subreddit-names to saved-posts for 
-        faster searching by subreddit. But since Reddit only allows users to have a max of 1000 saved posts anyways, 
-        the speed boost probably wouldn't be noticeable; so I'll stick to the simplicity & extensability of strightforward
-        iteration. ]#
 
 
 ## Parse response JSON to add to the list of RedditPost objects
@@ -140,11 +130,20 @@ proc readPostObjectsIntoList(json_body: JsonNode, output_list: var seq[RedditPos
         ))
 
 
-## Pretty-print details of reddit-post to stdout
-proc printPostDetails(id_num: int, post: RedditPost) =
-    echo()
-    echo fmt"#{id_num}"
-    echo post.sub
-    echo "\"" & post.main_text & "\""   # Surround with double-quotes
-    echo post.url
-    echo()
+## Pretty-print reddit-posts' from `sub` to stdout
+proc printPostDetailsMatching(sub: string, posts: seq[RedditPost]) =
+    var num_matched = 0   # for numbering output
+    for post in posts:
+        if post.sub == sub:
+            inc(num_matched)
+            echo()
+            echo fmt"#{num_matched}"
+            echo post.sub
+            echo "\"" & post.main_text & "\""   # Surround with double-quotes
+            echo post.url
+            echo()            
+    echo "(end)"
+    #[ I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
+    faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
+    (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
+    wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration. ]#
