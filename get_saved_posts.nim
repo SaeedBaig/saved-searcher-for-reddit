@@ -6,7 +6,7 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace
+from strutils import multiReplace, isEmptyOrWhitespace
 
 # Helper class to encapsulate the relevant post details we want to display
 type RedditPost = object
@@ -73,7 +73,14 @@ when isMainModule:
         # Fetch saved posts (max limit per request seems to be 100)
         # https://www.reddit.com/dev/api
         # TODO Add explanation of all URL params
-        let response = client.getContent(fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&after={after}&count={saved_posts.len}&show=all&raw_json=1")
+        let response = client.getContent(fmt"""
+            https://oauth.reddit.com/user/{Reddit_username}/saved?
+            limit=100&
+            after={after}&
+            count={saved_posts.len}&
+            show=all&
+            raw_json=1
+        """.multiReplace(("\n", ""), (" ", "")))   # remove whitespace from URL
         # TODO: Add error-handling
 
         # Read them into our list
