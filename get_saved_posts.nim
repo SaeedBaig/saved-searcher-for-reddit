@@ -6,7 +6,7 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import multiReplace, isEmptyOrWhitespace
+from strutils import isEmptyOrWhitespace
 
 # Helper class to encapsulate the relevant post details we want to display
 type RedditPost = object
@@ -19,7 +19,7 @@ type RedditEntity = enum
     Comment="t1", Account="t2", Link="t3", Message="t4", Subreddit="t5", Award="t6"
 
 # Helper functions
-proc readPostObjectsIntoList(json_body: JsonNode, output_list: var seq[RedditPost])
+proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
 proc printPostDetailsMatching(sub: string, posts: seq[RedditPost])
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
@@ -64,41 +64,31 @@ when isMainModule:
     #let thingy = new_client.getContent("https://oauth.reddit.com/api/v1/me")
     #debugEcho fmt"thingy = {thingy}"
 
-    # Finally can get saved posts
+    # Finally can fetch saved posts
+    # Can only fetch a limited number of posts at a time, so keep fetching til we get them all
     echo "Fetching your saved posts. This may take a moment..."
-    var after = ""
     var saved_posts: seq[RedditPost]
-    # Can only fetch a limited number of posts at a time, so keep fetching til we recieve the `after` field to stop
-    while true:
-        # Fetch saved posts (max limit per request seems to be 100)
-        # https://www.reddit.com/dev/api
-        # TODO Add explanation of all URL params
-        let response = client.getContent(fmt"""
-            https://oauth.reddit.com/user/{Reddit_username}/saved?
-            limit=100&
-            after={after}&
-            count={saved_posts.len}&
-            show=all&
-            raw_json=1
-        """.multiReplace(("\n", ""), (" ", "")))   # remove whitespace from URL
-        # TODO: Add error-handling
 
-        # Read them into our list
-        let json_data = response.parseJson()["data"]
-        readPostObjectsIntoList(json_data, saved_posts)
-        stdout.write fmt"Fetched {saved_posts.len} posts so far. "
+    #[ Parameters for fetch URL are:
+    - limit:    maximum #posts to fetch in this request (max Reddit allows is 100)
+    - show:     optional; if "all", filters such as "hide links that I have voted on" will be disabled
+    - raw_json: optional; if "1", gives literals in JSON for '<', '>' and '&' instead of legacy `&lt;`, `&gt;`, and `&amp;`
+    ]#
+    let base_fetch_url = fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&show=all&raw_json=1"
+    #[ There are also 2 additional parameters to pass on subsequent requests
+    - after:    id of a post; serves as an anchor point for future requests
+    - count:    total #posts fetched already (recommended but not required)
 
-        # Update `after` for next fetch request
-        after = json_data["after"].getStr()
-        if after.isEmptyOrWhitespace():   # All done - no more saved posts to fetch
-            break
-        # else
+    More information at https://www.reddit.com/dev/api ]#
+    
+    var after = readInSavedPosts(base_fetch_url, saved_posts)
+    stdout.write fmt"Fetched {saved_posts.len} posts so far. "
+    while not after.isEmptyOrWhitespace():
         echo "Fetching more..."
+        after = readInSavedPosts(fmt"{base_fetch_url}&after={after}&count={saved_posts.len}", saved_posts)
         #debugEcho fmt"after = '{after}'"
-
-    echo()
-    echo "All saved posts fetched - time to start searching"
-    echo()
+        stdout.write fmt"Fetched {saved_posts.len} posts so far. "
+    echo "\nAll saved posts fetched - time to start searching\n"
 
     # REPL
     while true:
@@ -109,16 +99,21 @@ when isMainModule:
         echo()
 
 
-## Parse response JSON to add to the list of RedditPost objects
-proc readPostObjectsIntoList(json_body: JsonNode, output_list: var seq[RedditPost]) =
+## Fetch saved posts via Reddit API and parse them into the RedditPost-objects list; return `after` field from JSON
+proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string =
+    # Fetch saved Reddit posts
+    let response = client.getContent(fetch_url)
+    # TODO: Add error-handling
+    let json_data = response.parseJson()["data"]
+
+    # Now to parse them into RedditPost objects and add them to `output_list`
     #[ There's apparently not much official documentation about Reddit's JSON; the most I could find was this archived 
-    wiki last edited in 2016: https://github.com/reddit-archive/reddit/wiki/JSON
+    wiki https://github.com/reddit-archive/reddit/wiki/JSON last edited in 2016
 
-    The best you can do is just glean what you can from the official docs and check out your own saved-posts JSON file
-    (https://www.reddit.com/user/{username}/saved.json) to grok what the fields mean
-    (might help to paste it into a JSON-formatter first, like https://jsonformatter.curiousconcept.com/). ]#
-
-    let post_objects = json_body["children"]
+    The best you can do is probably just to glean what you can from the official docs and check out your own saved-posts
+    JSON file (https://www.reddit.com/user/{username}/saved.json) to grok what the fields mean (might help to paste it 
+    into a JSON-formatter first, like https://jsonformatter.curiousconcept.com/). ]#
+    let post_objects = json_data["children"]
     for post_object in post_objects:
         let post = post_object["data"]
         let post_type = post_object["kind"].getStr()
@@ -136,6 +131,8 @@ proc readPostObjectsIntoList(json_body: JsonNode, output_list: var seq[RedditPos
             url: fmt"https://www.reddit.com{post[""permalink""].getStr()}"
         ))
 
+    return json_data["after"].getStr()
+    
 
 ## Pretty-print reddit-posts' from `sub` to stdout
 proc printPostDetailsMatching(sub: string, posts: seq[RedditPost]) =
