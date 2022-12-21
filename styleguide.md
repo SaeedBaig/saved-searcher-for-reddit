@@ -6,6 +6,7 @@
 * Variable/member names are `snake_case`
 * Procedure/method names are `camelCase`
 * Configurable constants (e.g. app name) are `SNAKE_CAPS`
+* Custom types are `CapitalisedCamelCase`
 * Line length limit is 120 chars; 128 max
 * Call library procs with object syntax (`foo.bar()`), custom procs with functional syntax (`bar(foo)`)
 * Differentiate between prints intended for end-user VS prints intended for debugging with `echo` VS `debugEcho`
@@ -26,4 +27,4 @@
 
 **Golden Rule:** Use the expression that best signals the intent of the code (e.g. `inc(counter)` better signals intent than just `counter += 1`; `list.isEmpty()` better signals intent than just `list.len == 0`)
 
-_Reminder: These are all just guidelines; can deviate from any of these when you think there's a good reason to do so (e.g. may use single-use variable as an intermediate result in some complex calculation) - use your best judgement._
+_Reminder: These are just guidelines, not laws; can deviate from any of these when you think there's a good reason to do so (e.g. may use single-use variable as an intermediate result in some complex calculation) - use your best judgement._
