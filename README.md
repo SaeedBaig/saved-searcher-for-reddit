@@ -52,6 +52,7 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 ```
 
 ## TODO
+- Hide password whilst user's entering it (add '*' effect so it looks like "*****" when you're typing it)
 - Add filter by subreddit or post-text (or both)
 - Add filter by comment or post (or both)
 - Add argument-parsing to alternatively use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit1 subreddit2 subreddit 3 ...`)
