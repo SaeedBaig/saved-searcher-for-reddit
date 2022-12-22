@@ -6,7 +6,19 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace, normalize, contains, repeat
+from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent
+
+# A brief description of our app ("<app name>/<app version>"); can be anything
+const APP_NAME      = "SavedSearcher/0.0.1"
+# From your personal app you created (https://www.reddit.com/prefs/apps):
+const APP_ID        = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
+const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
+
+# Consts for printing (eyeballed what looked good)
+const SEPARATOR_WIDTH = 110
+const HEADER_PREFIX_WIDTH = 23
+const BANNER = "#".repeat(SEPARATOR_WIDTH)
+const POST_SEPARATOR = "_".repeat(SEPARATOR_WIDTH)
 
 # Helper class to encapsulate the relevant post details we want to display
 type RedditPost = object
@@ -21,12 +33,6 @@ type RedditEntity = enum
 # Helper functions
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
 proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost])
-
-# A brief description of our app ("<app name>/<app version>"); can be anything
-const APP_NAME      = "SavedSearcher/0.0.1"
-# From your personal app you created (https://www.reddit.com/prefs/apps):
-const APP_ID        = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
-const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
 
 when isMainModule:
@@ -71,7 +77,7 @@ when isMainModule:
     #[ Parameters for fetch URL are:
     - limit:    maximum #posts to fetch in this request (max Reddit allows is 100)
     - show:     optional; if "all", filters such as "hide links that I have voted on" will be disabled
-    - raw_json: optional; if "1", gives literals in JSON for '<', '>' and '&' instead of legacy `&lt;`, `&gt;`, and `&amp;`
+    - raw_json: optional; if "1", gives literals in JSON for <, > and & instead of legacy &lt; &gt; and &amp;
     ]#
     let base_fetch_url = fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&show=all&raw_json=1"
     #[ There are also 2 additional parameters to pass on subsequent requests
@@ -92,9 +98,18 @@ when isMainModule:
 
     # REPL
     while true:
-        stdout.write "Enter search text (Ctrl+C to quit): "   # TODO: Add Ctrl+C handling for graceful exit
+        stdout.write "Enter search term (Ctrl+C to quit): "   # TODO: Add Ctrl+C handling for graceful exit
         let search_input = readLine(stdin)
+        let header = fmt" Search results for ""{search_input}"" "
+
+        echo()
+        echo BANNER
+        echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
+        #echo header.indent(24)
+        echo BANNER
+        echo()
         printPostDetailsMatching(search_input, saved_posts)
+        echo()
         echo()
 
 
@@ -142,12 +157,13 @@ proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost]) =
         # match if substring
         if normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text):
             inc(num_matched)
-            echo()
             echo fmt"#{num_matched}"
-            echo post.sub
+            echo()
+            echo post.sub   # TODO: Experiment with printing main_text on same line after sub, then newline
             echo "\"" & post.main_text & "\""   # Surround with double-quotes
             echo post.url
-            echo()            
+            echo POST_SEPARATOR
+            echo()
     echo "(end)"
     #[ I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
     faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
