@@ -6,7 +6,7 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace
+from strutils import isEmptyOrWhitespace, normalize, contains, repeat
 
 # Helper class to encapsulate the relevant post details we want to display
 type RedditPost = object
@@ -20,7 +20,7 @@ type RedditEntity = enum
 
 # Helper functions
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
-proc printPostDetailsMatching(sub: string, posts: seq[RedditPost])
+proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost])
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
@@ -65,7 +65,6 @@ when isMainModule:
     #debugEcho fmt"thingy = {thingy}"
 
     # Finally can fetch saved posts
-    # Can only fetch a limited number of posts at a time, so keep fetching til we get them all
     echo "Fetching your saved posts. This may take a moment..."
     var saved_posts: seq[RedditPost]
 
@@ -77,10 +76,11 @@ when isMainModule:
     let base_fetch_url = fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&show=all&raw_json=1"
     #[ There are also 2 additional parameters to pass on subsequent requests
     - after:    id of a post; serves as an anchor point for future requests
-    - count:    total #posts fetched already (recommended but not required)
+    - count:    total #posts fetched already (not required but recommended)
 
     More information at https://www.reddit.com/dev/api ]#
     
+    # Can only fetch a limited number of posts at a time, so keep fetching til we get them all
     var after = readInSavedPosts(base_fetch_url, saved_posts)
     stdout.write fmt"Fetched {saved_posts.len} posts so far. "
     while not after.isEmptyOrWhitespace():
@@ -88,14 +88,13 @@ when isMainModule:
         after = readInSavedPosts(fmt"{base_fetch_url}&after={after}&count={saved_posts.len}", saved_posts)
         #debugEcho fmt"after = '{after}'"
         stdout.write fmt"Fetched {saved_posts.len} posts so far. "
-    echo "\nAll saved posts fetched - time to start searching\n"
+    echo "\nAll saved posts fetched\n"
 
     # REPL
     while true:
-        stdout.write "Which subreddit do you want to search from your saved posts (Ctrl+C to quit)? r/"
-        # TODO: Add Ctrl+C handling for graceful exit
-        let target_sub = "r/" & readLine(stdin)
-        printPostDetailsMatching(target_sub, saved_posts)
+        stdout.write "Enter search text (Ctrl+C to quit): "   # TODO: Add Ctrl+C handling for graceful exit
+        let search_input = readLine(stdin)
+        printPostDetailsMatching(search_input, saved_posts)
         echo()
 
 
@@ -126,8 +125,8 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
                     post["title"].getStr() 
                 of $Comment:   # Saved comment; no title
                     post["body"].getStr() 
-                else: 
-                    "ERROR: Not link or comment",
+                else:
+                    quit("ERROR: Encountered a post that's not a link or a comment; don't know how to handle it"),
             url: fmt"https://www.reddit.com{post[""permalink""].getStr()}"
         ))
 
@@ -135,10 +134,13 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
     
 
 ## Pretty-print reddit-posts' from `sub` to stdout
-proc printPostDetailsMatching(sub: string, posts: seq[RedditPost]) =
+proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost]) =
+    let normalized_text = normalize(search_text)   # for case-insensitive searching
     var num_matched = 0   # for numbering output
+
     for post in posts:
-        if post.sub == sub:
+        # match if substring
+        if normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text):
             inc(num_matched)
             echo()
             echo fmt"#{num_matched}"
