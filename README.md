@@ -17,24 +17,35 @@ All saved posts fetched!
 
 Enter search text (Ctrl+C to quit): linux
 
+##############################################################################################################
+####################### Search results for "linux" ###########################################################
+##############################################################################################################
+
 #1
+
 r/linux
 "Tales of the M1 GPU - Asahi Linux"
 https://www.reddit.com/r/linux/comments/z7zl2j/tales_of_the_m1_gpu_asahi_linux/
-
+______________________________________________________________________________________________________________
 
 #2
+
 r/linuxmasterrace
 "My linux sticker setup!"
 https://www.reddit.com/r/linuxmasterrace/comments/zqnyzz/my_linux_sticker_setup/
-
+______________________________________________________________________________________________________________
 
 #3
+
 r/unixporn
 "[sway] Arch Linux Purple"
 https://www.reddit.com/r/unixporn/comments/y34f67/sway_arch_linux_purple/
+______________________________________________________________________________________________________________
 
 …
+
+(end)
+
 
 Enter search text (Ctrl+C to quit): 
 ```
