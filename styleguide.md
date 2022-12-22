@@ -1,11 +1,11 @@
 # Styleguide
 
 ## Syntactic
-* Typical source-code file layout should be (in order): heading comment, imports, type definitions, function declarations, configurable constants, main function, and function definitions
+* Typical source-code file layout should be (in order): heading comment, imports, global constants, type definitions, function declarations, main function, and function definitions (in the order they're first called in the main function)
 * Indent width is 4 spaces
 * Variable/member names are `snake_case`
 * Procedure/method names are `camelCase`
-* Configurable constants (e.g. app name) are `SNAKE_CAPS`
+* Global constants are `SNAKE_CAPS`
 * Custom types are `CapitalisedCamelCase`
 * Line length limit is 120 chars; 128 max
 * Call library procs with object syntax (`foo.bar()`), custom procs with functional syntax (`bar(foo)`)
