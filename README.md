@@ -9,6 +9,7 @@ Enter your details once to fetch all your saved posts via Reddit's API, then int
 $ ./get_saved_posts
 Enter your Reddit username: johndoe
 Enter your Reddit password: *********
+
 Fetching your saved posts. This may take a moment...
 Fetched 100 posts so far. Fetching more...
 Fetched 200 posts so far. Fetching more...
@@ -65,6 +66,7 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 ## TODO
 - Add filter by subreddit or post-text (or both)
 - Add filter by comment or post (or both)
+- Add command history for up-down arrow (like bash history)
 - Add argument-parsing to alternatively use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit1 subreddit2 subreddit 3 ...`)
 - Add `-h` flag for help
 - Add `-q` (quiet) flag for no extraneous output (for piping, dumping output to file, etc)

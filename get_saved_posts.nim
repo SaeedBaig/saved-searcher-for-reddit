@@ -43,6 +43,7 @@ when isMainModule:
     let Reddit_username = readLine(stdin)
     stdout.write "Enter your Reddit password: "
     let Reddit_password = getPassword()
+    echo "\nFetching your saved posts. This may take a moment..."
 
     #[ Setup our header info:
     - A brief description of our app
@@ -73,7 +74,6 @@ when isMainModule:
     #debugEcho fmt"thingy = {thingy}"
 
     # Finally can fetch saved posts
-    echo "Fetching your saved posts. This may take a moment..."
     var saved_posts: seq[RedditPost]
 
     #[ Parameters for fetch URL are:
@@ -122,6 +122,7 @@ proc getPassword(): string =
     while password == "" or password[^1] notin ['\x0D', '\n']:
         password.add getch()
         stdout.write("*")
+        # TODO: Bug where prints asterisks for backspace; fix that
     echo()
     return password.strip()
 
@@ -130,7 +131,7 @@ proc getPassword(): string =
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string =
     # Fetch saved Reddit posts
     let response = client.getContent(fetch_url)
-    # TODO: Add error-handling
+    # TODO: Add error-handling (incl 500 Server Error, which I randomly got one time for no reason)
     let json_data = response.parseJson()["data"]
 
     # Now to parse them into RedditPost objects and add them to `output_list`
