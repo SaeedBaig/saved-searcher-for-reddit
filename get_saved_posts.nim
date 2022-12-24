@@ -6,7 +6,8 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent
+from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent, strip
+from terminal import getch
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
@@ -31,6 +32,7 @@ type RedditEntity = enum
     Comment="t1", Account="t2", Link="t3", Message="t4", Subreddit="t5", Award="t6"
 
 # Helper functions
+proc getPassword(): string
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
 proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost])
 
@@ -40,7 +42,7 @@ when isMainModule:
     stdout.write "Enter your Reddit username: "
     let Reddit_username = readLine(stdin)
     stdout.write "Enter your Reddit password: "
-    let Reddit_password = readLine(stdin)
+    let Reddit_password = getPassword()
 
     #[ Setup our header info:
     - A brief description of our app
@@ -105,12 +107,23 @@ when isMainModule:
         echo()
         echo BANNER
         echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
-        #echo header.indent(24)
         echo BANNER
         echo()
         printPostDetailsMatching(search_input, saved_posts)
         echo()
         echo()
+
+
+## Read in password, typing '*' instead of echoing output
+# (code adapted from example here: https://gist.github.com/mttaggart/aa67c96b61ebc1a9ba4cbfd655931492)
+proc getPassword(): string =
+    var password = ""
+    # while password is empty or last character is not EOF/newline
+    while password == "" or password[^1] notin ['\x0D', '\n']:
+        password.add getch()
+        stdout.write("*")
+    echo()
+    return password.strip()
 
 
 ## Fetch saved posts via Reddit API and parse them into the RedditPost-objects list; return `after` field from JSON
