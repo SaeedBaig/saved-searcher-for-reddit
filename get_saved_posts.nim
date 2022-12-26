@@ -8,6 +8,7 @@ from base64 import encode
 from strformat import fmt
 from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent, strip
 from terminal import getch
+from sugar import `->`, `=>`   # sugar for type declaration for procs-as-params & anonymous functions respectively
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
@@ -15,7 +16,7 @@ const APP_NAME      = "SavedSearcher/0.0.1"
 const APP_ID        = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
 const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
-# Consts for printing (eyeballed what looked good)
+# Consts for printing (just eyeballed what looked good)
 const SEPARATOR_WIDTH = 110
 const HEADER_PREFIX_WIDTH = 23
 const BANNER = "#".repeat(SEPARATOR_WIDTH)
@@ -34,7 +35,8 @@ type RedditEntity = enum
 # Helper functions
 proc getPassword(): string
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
-proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost])
+proc printPosts(posts: seq[RedditPost], search_text: string = "")
+proc printPostsImp(posts: seq[RedditPost], predicate: (RedditPost) -> bool)
 
 
 when isMainModule:
@@ -96,11 +98,12 @@ when isMainModule:
         after = readInSavedPosts(fmt"{base_fetch_url}&after={after}&count={saved_posts.len}", saved_posts)
         #debugEcho fmt"after = '{after}'"
         stdout.write fmt"Fetched {saved_posts.len} posts so far. "
+    printPosts(saved_posts)
     echo "\nAll saved posts fetched\n"
 
     # REPL
-    while true:
-        stdout.write "Enter search term (Ctrl+C to quit): "   # TODO: Add Ctrl+C handling for graceful exit
+    while true:   # TODO: Add Ctrl+C handling for graceful exit
+        stdout.write "Enter search term, or nothing to display all posts (Ctrl+C to quit): "
         let search_input = readLine(stdin)
         let header = fmt" Search results for ""{search_input}"" "
 
@@ -109,7 +112,8 @@ when isMainModule:
         echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
         echo BANNER
         echo()
-        printPostDetailsMatching(search_input, saved_posts)
+
+        printPosts(saved_posts, search_text=search_input)
         echo()
         echo()
 
@@ -118,11 +122,11 @@ when isMainModule:
 # (code adapted from example here: https://gist.github.com/mttaggart/aa67c96b61ebc1a9ba4cbfd655931492)
 proc getPassword(): string =
     var password = ""
-    # while password is empty or last character is not EOF/newline
+    # while password is empty or last character is not carriage return or newline
     while password == "" or password[^1] notin ['\x0D', '\n']:
         password.add getch()
         stdout.write("*")
-        # TODO: Bug where prints asterisks for backspace; fix that
+        # TODO: Bug where prints asterisks even when trying to backspace; fix that (try \x2408 for backspace)
     echo()
     return password.strip()
 
@@ -162,14 +166,24 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
     return json_data["after"].getStr()
     
 
-## Pretty-print reddit-posts' from `sub` to stdout
-proc printPostDetailsMatching(search_text: string, posts: seq[RedditPost]) =
-    let normalized_text = normalize(search_text)   # for case-insensitive searching
-    var num_matched = 0   # for numbering output
+## Pretty-print reddit posts matching `search_text` to stdout (all if `search_text` not provided)
+proc printPosts(posts: seq[RedditPost], search_text: string = "") =
+    if search_text == "":
+        # just print all posts
+        printPostsImp(posts, (post) => true)
+    else:
+        # print all matches with substring
+        let normalized_text = normalize(search_text)   # for case-insensitive searching
+        printPostsImp(posts, (post) => 
+            normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text)
+        )
+    
 
+# Actual heavy lifting; pretty-printing posts in a list that pass predicate()
+proc printPostsImp(posts: seq[RedditPost], predicate: (RedditPost) -> bool) =
+    var num_matched = 0   # for numbering output
     for post in posts:
-        # match if substring
-        if normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text):
+        if predicate(post) == true:
             inc(num_matched)
             echo fmt"#{num_matched}"
             echo()
