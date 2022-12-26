@@ -120,13 +120,19 @@ when isMainModule:
 
 ## Read in password, typing '*' instead of echoing output
 # (code adapted from example here: https://gist.github.com/mttaggart/aa67c96b61ebc1a9ba4cbfd655931492)
+# TODO: Consider moving this proc to another file called `utils` or something
 proc getPassword(): string =
+    const backspace_character = char(127)   # ASCII code
     var password = ""
-    # while password is empty or last character is not carriage return or newline
-    while password == "" or password[^1] notin ['\x0D', '\n']:
-        password.add getch()
-        stdout.write("*")
-        # TODO: Bug where prints asterisks even when trying to backspace; fix that (try \x2408 for backspace)
+    while password == "" or password[^1] notin ['\r', '\n']:
+        let entered_char = getch()
+        #debugEcho fmt"entered_char = {int(entered_char)} ('{entered_char}')"
+
+        # Cant actually implement backspace behaviour (remove char already printed to stdout), but can at least 
+        # not add/print for its character
+        if entered_char != backspace_character:
+            password.add(entered_char)
+            stdout.write("*")
     echo()
     return password.strip()
 
