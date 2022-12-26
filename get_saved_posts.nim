@@ -180,8 +180,7 @@ proc printPostsImp(posts: seq[RedditPost], predicate: (RedditPost) -> bool) =
             inc(num_matched)
             echo fmt"#{num_matched}"
             echo()
-            echo post.sub   # TODO: Experiment with printing main_text on same line after sub, then newline
-            echo "\"" & post.main_text & "\""   # Surround with double-quotes
+            echo fmt"{post.sub} - '{post.main_text}'"
             echo post.url
             echo POST_SEPARATOR
             echo()

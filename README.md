@@ -24,22 +24,19 @@ Enter search text (Ctrl+C to quit): linux
 
 #1
 
-r/linux
-"Tales of the M1 GPU - Asahi Linux"
+r/linux - 'Tales of the M1 GPU - Asahi Linux'
 https://www.reddit.com/r/linux/comments/z7zl2j/tales_of_the_m1_gpu_asahi_linux/
 ______________________________________________________________________________________________________________
 
 #2
 
-r/linuxmasterrace
-"My linux sticker setup!"
+r/linuxmasterrace - 'My linux sticker setup!'
 https://www.reddit.com/r/linuxmasterrace/comments/zqnyzz/my_linux_sticker_setup/
 ______________________________________________________________________________________________________________
 
 #3
 
-r/unixporn
-"[sway] Arch Linux Purple"
+r/unixporn - '[sway] Arch Linux Purple'
 https://www.reddit.com/r/unixporn/comments/y34f67/sway_arch_linux_purple/
 ______________________________________________________________________________________________________________
 
@@ -64,6 +61,7 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 ```
 
 ## TODO
+- Print post titles in bold
 - Add filter by subreddit or post-text (or both)
 - Add filter by comment or post (or both)
 - Add command history for up-down arrow (like bash history)
