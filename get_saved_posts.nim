@@ -56,14 +56,20 @@ when isMainModule:
         "Authorization": "Basic " & base64.encode(fmt"{APP_ID}:{APP_SECRET}")
     })
 
-    # Send our request for an OAuth token (valid for ~2 hours)
+    # Send our request for an OAuth token (valid for 24 hours)
     # Since we fetch all the saved posts into memory ASAP and don't need to access the API afterwards, token 
     # expiry shouldn't be a problem
-    let token = client.postContent(
+    let auth_response = client.postContent(
         "https://www.reddit.com/api/v1/access_token",
         multipart=newMultipartData({"grant_type":"password", "username":Reddit_username, "password":Reddit_password})
-    ).parseJson()["access_token"].getStr()
-    # TODO: Add error-handling for when username/password incorrect (or just no token)
+    ).parseJson()
+
+    # Error-handling
+    if not auth_response.hasKey "access_token":
+        echo auth_response["error"].getStr
+        quit("Error: Username or password incorrect")
+    # else
+    let token = auth_response["access_token"].getStr()
 
     # Reset headers (otherwise the multipart data screws up GET request) and set new authorisation with token
     client.headers = newHttpHeaders({
