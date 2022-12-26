@@ -6,9 +6,10 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent, strip
-from terminal import getch
-from sugar import `->`, `=>`   # sugar for type declaration for procs-as-params & anonymous functions respectively
+from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent
+from sugar import `->`, `=>`   # sugar for procs-as-params type declaration and anonymous functions respectively
+
+from misc_utils import getPassword
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
@@ -33,7 +34,6 @@ type RedditEntity = enum
     Comment="t1", Account="t2", Link="t3", Message="t4", Subreddit="t5", Award="t6"
 
 # Helper functions
-proc getPassword(): string
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
 proc printPosts(posts: seq[RedditPost], search_text: string = "")
 proc printPostsImp(posts: seq[RedditPost], predicate: (RedditPost) -> bool)
@@ -116,25 +116,6 @@ when isMainModule:
         printPosts(saved_posts, search_text=search_input)
         echo()
         echo()
-
-
-## Read in password, typing '*' instead of echoing output
-# (code adapted from example here: https://gist.github.com/mttaggart/aa67c96b61ebc1a9ba4cbfd655931492)
-# TODO: Consider moving this proc to another file called `utils` or something
-proc getPassword(): string =
-    const backspace_character = char(127)   # ASCII code
-    var password = ""
-    while password == "" or password[^1] notin ['\r', '\n']:
-        let entered_char = getch()
-        #debugEcho fmt"entered_char = {int(entered_char)} ('{entered_char}')"
-
-        # Cant actually implement backspace behaviour (remove char already printed to stdout), but can at least 
-        # not add/print for its character
-        if entered_char != backspace_character:
-            password.add(entered_char)
-            stdout.write("*")
-    echo()
-    return password.strip()
 
 
 ## Fetch saved posts via Reddit API and parse them into the RedditPost-objects list; return `after` field from JSON

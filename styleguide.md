@@ -1,7 +1,7 @@
 # Styleguide
 
 ## Syntactic
-* Typical source-code file layout should be (in order): heading comment, imports, global constants, type definitions, function declarations, main function, and function definitions (in the order they're first called in the main function)
+* Typical source-code file layout should be (in order): heading comment, library imports, custom imports, global constants, type definitions, function declarations, main function, and function definitions (in the order they're first called in the main function)
 * Indent width is 4 spaces
 * Variable/member names are `snake_case`
 * Procedure/method names are `camelCase`
