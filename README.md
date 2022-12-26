@@ -17,6 +17,7 @@ Fetched 200 posts so far. Fetching more...
 All saved posts fetched!
 
 Enter search text (Ctrl+C to quit): linux
+Would you like to search for posts (p), subreddits (s) or both (b)? 
 
 ##############################################################################################################
 ####################### Search results for "linux" ###########################################################
@@ -62,7 +63,6 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 
 ## TODO
 - Print post titles in bold
-- Add filter by subreddit or post-text (or both)
 - Add filter by comment or post (or both)
 - Add command history for up-down arrow (like bash history)
 - Add argument-parsing to alternatively use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit1 subreddit2 subreddit 3 ...`)

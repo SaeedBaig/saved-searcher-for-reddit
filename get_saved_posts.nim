@@ -7,6 +7,8 @@ import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
 from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent
+from terminal import getch
+from sequtils import filter
 from sugar import `->`, `=>`   # sugar for procs-as-params type declaration and anonymous functions respectively
 
 from misc_utils import getPassword
@@ -35,8 +37,7 @@ type RedditEntity = enum
 
 # Helper functions
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
-proc printPosts(posts: seq[RedditPost], search_text: string = "")
-proc printPostsImp(posts: seq[RedditPost], predicate: (RedditPost) -> bool)
+proc printPosts(posts: seq[RedditPost])
 
 
 when isMainModule:
@@ -111,15 +112,50 @@ when isMainModule:
     while true:   # TODO: Add Ctrl+C handling for graceful exit
         stdout.write "Enter search term, or nothing to display all posts (Ctrl+C to quit): "
         let search_input = readLine(stdin)
-        let header = fmt" Search results for ""{search_input}"" "
+
+        if search_input == "":
+            printPosts(saved_posts)
+            echo()
+            echo()
+            continue
+        # else
+
+        stdout.write "Would you like to search for posts (p), subreddits (s) or both (b)? "
+        var search_mode: char
+        while (search_mode = getch(); search_mode) notin ['p', 's', 'b']:
+            stdout.write "\nSorry, I don't understand... Enter 'p' to search by post, 's' to search by subreddit, or 'b' to search by both: "
 
         echo()
+        echo()
         echo BANNER
+        let header = fmt" Search results for ""{search_input}"" "
         echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
         echo BANNER
         echo()
 
-        printPosts(saved_posts, search_text=search_input)
+        let normalized_text = normalize(search_input)   # for case-insensitive searching
+
+        let filtered_by_search_mode = case search_mode
+        of 'p':
+            saved_posts.filter((post) => 
+                normalize(post.main_text).contains(normalized_text)
+            )
+        of 's':
+            saved_posts.filter((post) => 
+                normalize(post.sub).contains(normalized_text)
+            )
+        of 'b':
+            saved_posts.filter((post) =>
+                normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text)
+            )
+        else:
+            quit("Error: `search_mode` not one of 'p', 's' or 'b'; don't know what to do")
+        #[ I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
+        faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
+        (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
+        wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration. ]#
+
+        printPosts(filtered_by_search_mode)
         echo()
         echo()
 
@@ -159,33 +195,15 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
     return json_data["after"].getStr()
     
 
-## Pretty-print reddit posts matching `search_text` to stdout (all if `search_text` not provided)
-proc printPosts(posts: seq[RedditPost], search_text: string = "") =
-    if search_text == "":
-        # just print all posts
-        printPostsImp(posts, (post) => true)
-    else:
-        # print all matches with substring
-        let normalized_text = normalize(search_text)   # for case-insensitive searching
-        printPostsImp(posts, (post) => 
-            normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text)
-        )
-    
-
-# Actual heavy lifting; pretty-printing posts in a list that pass predicate()
-proc printPostsImp(posts: seq[RedditPost], predicate: (RedditPost) -> bool) =
-    var num_matched = 0   # for numbering output
+## Pretty-print reddit posts to stdout
+proc printPosts(posts: seq[RedditPost]) =
+    var counter = 0   # for numbering output
     for post in posts:
-        if predicate(post) == true:
-            inc(num_matched)
-            echo fmt"#{num_matched}"
-            echo()
-            echo fmt"{post.sub} - '{post.main_text}'"
-            echo post.url
-            echo POST_SEPARATOR
-            echo()
+        inc(counter)
+        echo fmt"#{counter}"
+        echo()
+        echo fmt"{post.sub} - '{post.main_text}'"
+        echo post.url
+        echo POST_SEPARATOR
+        echo()
     echo "(end)"
-    #[ I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
-    faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
-    (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
-    wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration. ]#
