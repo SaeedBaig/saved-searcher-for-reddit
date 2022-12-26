@@ -79,7 +79,7 @@ when isMainModule:
 
     # POC
     #let thingy = new_client.getContent("https://oauth.reddit.com/api/v1/me")
-    #debugEcho fmt"thingy = {thingy}"
+    #debugEcho fmt"{thingy=}"
 
     # Finally can fetch saved posts
     var saved_posts: seq[RedditPost]
