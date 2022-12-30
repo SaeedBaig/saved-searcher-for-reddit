@@ -62,7 +62,6 @@ nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
 ```
 
 ## TODO
-- Print post titles in bold
 - Add filter by comment or post (or both)
 - Add command history for up-down arrow (like bash history)
 - Add argument-parsing to alternatively use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit1 subreddit2 subreddit 3 ...`)

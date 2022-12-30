@@ -7,7 +7,7 @@ import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
 from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent
-from terminal import getch
+from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledWriteLine needed for styledEcho to compile
 from sequtils import filter
 from sugar import `->`, `=>`   # sugar for procs-as-params type declaration and anonymous functions respectively
 
@@ -202,7 +202,7 @@ proc printPosts(posts: seq[RedditPost]) =
         inc(counter)
         echo fmt"#{counter}"
         echo()
-        echo fmt"{post.sub} - '{post.main_text}'"
+        styledEcho fmt"{post.sub} - ", styleBright, fmt"'{post.main_text}'"   # bold the post's maintext
         echo post.url
         echo POST_SEPARATOR
         echo()
