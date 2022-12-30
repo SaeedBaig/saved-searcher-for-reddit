@@ -6,10 +6,10 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace, normalize, contains, repeat, indent
+from strutils import isEmptyOrWhitespace, normalize, contains, repeat
 from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledWriteLine needed for styledEcho to compile
 from sequtils import filter
-from sugar import `->`, `=>`   # sugar for procs-as-params type declaration and anonymous functions respectively
+from sugar import `=>`   # syntactic sugar for anonymous functions
 
 from misc_utils import getPassword
 
