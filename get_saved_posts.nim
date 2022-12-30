@@ -46,7 +46,7 @@ when isMainModule:
     let Reddit_username = readLine(stdin)
     stdout.write "Enter your Reddit password: "
     let Reddit_password = getPassword()
-    echo "\nFetching your saved posts. This may take a moment..."
+    echo "\nFetching your saved posts, this may take a moment..."
 
     #[ Setup our header info:
     - A brief description of our app
@@ -99,12 +99,12 @@ when isMainModule:
     
     # Can only fetch a limited number of posts at a time, so keep fetching til we get them all
     var after = readInSavedPosts(base_fetch_url, saved_posts)
-    stdout.write fmt"Fetched {saved_posts.len} posts so far. "
+    stdout.write fmt"Fetched {saved_posts.len} so far. "
     while not after.isEmptyOrWhitespace():
         echo "Fetching more..."
         after = readInSavedPosts(fmt"{base_fetch_url}&after={after}&count={saved_posts.len}", saved_posts)
         #debugEcho fmt"after = '{after}'"
-        stdout.write fmt"Fetched {saved_posts.len} posts so far. "
+        stdout.write fmt"Fetched {saved_posts.len} so far. "
     printPosts(saved_posts)
     echo "\nAll saved posts fetched\n"
 
