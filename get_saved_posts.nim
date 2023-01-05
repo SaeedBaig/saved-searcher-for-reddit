@@ -133,19 +133,19 @@ when isMainModule:
         echo BANNER
         echo()
 
-        let normalized_text = normalize(search_input)   # for case-insensitive searching
+        let normalized_input = normalize(search_input)   # for case-insensitive searching
         let filtered_by_search_mode = case search_mode
         of 'p':
             saved_posts.filter((post) => 
-                normalize(post.main_text).contains(normalized_text)
+                normalize(post.main_text).contains(normalized_input)
             )
         of 's':
             saved_posts.filter((post) => 
-                normalize(post.sub).contains(normalized_text)
+                normalize(post.sub).contains(normalized_input)
             )
         of 'b':
             saved_posts.filter((post) =>
-                normalize(post.sub).contains(normalized_text) or normalize(post.main_text).contains(normalized_text)
+                normalize(post.sub).contains(normalized_input) or normalize(post.main_text).contains(normalized_input)
             )
         else:
             quit("Error: `search_mode` not one of 'p', 's' or 'b'; don't know what to do")
