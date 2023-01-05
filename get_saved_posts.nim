@@ -9,7 +9,7 @@ from strformat import fmt
 from strutils import isEmptyOrWhitespace, normalize, contains, repeat
 from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledWriteLine needed for styledEcho to work
 from sequtils import filter
-from sugar import `=>`   # syntactic sugar for anonymous functions
+from sugar import `->`, `=>`   # syntactic sugar for anonymous-proc signatures & definitions respectively
 
 from misc_utils import getPassword
 
@@ -134,27 +134,25 @@ when isMainModule:
         echo()
 
         let normalized_input = normalize(search_input)   # for case-insensitive searching
-        let filtered_by_search_mode = case search_mode
-        of 'p':
-            saved_posts.filter((post) => 
-                normalize(post.main_text).contains(normalized_input)
-            )
-        of 's':
-            saved_posts.filter((post) => 
-                normalize(post.sub).contains(normalized_input)
-            )
-        of 'b':
-            saved_posts.filter((post) =>
-                normalize(post.sub).contains(normalized_input) or normalize(post.main_text).contains(normalized_input)
-            )
-        else:
-            quit("Error: `search_mode` not one of 'p', 's' or 'b'; don't know what to do")
+        let search_criteria: RedditPost->bool = (case search_mode   # choose anonymous proc for filtering saved-posts
+            of 'p':
+                (post:RedditPost) => 
+                    normalize(post.main_text).contains(normalized_input)
+            of 's':
+                (post:RedditPost) => 
+                    normalize(post.sub).contains(normalized_input)
+            of 'b':
+                (post:RedditPost) => 
+                    normalize(post.sub).contains(normalized_input) or normalize(post.main_text).contains(normalized_input)
+            else:
+                quit("Error: `search_mode` somehow not one of 'p', 's' or 'b' - dont know what to do")
+        )
+
+        printPosts(saved_posts.filter(search_criteria))
         #[ I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
         faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
         (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
         wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration. ]#
-
-        printPosts(filtered_by_search_mode)
         echo()
         echo()
 
