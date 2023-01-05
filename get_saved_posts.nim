@@ -7,7 +7,7 @@ import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
 from strutils import isEmptyOrWhitespace, normalize, contains, repeat
-from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledWriteLine needed for styledEcho to compile
+from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledWriteLine needed for styledEcho to work
 from sequtils import filter
 from sugar import `=>`   # syntactic sugar for anonymous functions
 
@@ -88,7 +88,7 @@ when isMainModule:
     #[ Parameters for fetch URL are:
     - limit:    maximum #posts to fetch in this request (max Reddit allows is 100)
     - show:     optional; if "all", filters such as "hide links that I have voted on" will be disabled
-    - raw_json: optional; if "1", gives literals in JSON for <, > and & instead of legacy &lt; &gt; and &amp;
+    - raw_json: optional; if "1", gives literal chars for '<', '>' and '&' (instead of legacy &lt; &gt; and &amp;)
     ]#
     let base_fetch_url = fmt"https://oauth.reddit.com/user/{Reddit_username}/saved?limit=100&show=all&raw_json=1"
     #[ There are also 2 additional parameters to pass on subsequent requests
@@ -122,7 +122,8 @@ when isMainModule:
         stdout.write "Would you like to search for posts (p), subreddits (s) or both (b)? "
         var search_mode: char
         while (search_mode = getch(); search_mode) notin ['p', 's', 'b']:
-            stdout.write "\nSorry, I don't understand... Enter 'p' to search by post, 's' to search by subreddit, or 'b' to search by both: "
+            stdout.write "\nSorry, I don't understand... "
+            stdout.write "Enter 'p' to search by post, 's' to search by subreddit, or 'b' to search by both: "
 
         echo()
         echo()
@@ -133,7 +134,6 @@ when isMainModule:
         echo()
 
         let normalized_text = normalize(search_input)   # for case-insensitive searching
-
         let filtered_by_search_mode = case search_mode
         of 'p':
             saved_posts.filter((post) => 
@@ -170,9 +170,9 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
     #[ There's apparently not much official documentation about Reddit's JSON; the most I could find was this archived 
     wiki https://github.com/reddit-archive/reddit/wiki/JSON last edited in 2016
 
-    The best you can do is probably just to glean what you can from the official docs and check out your own saved-posts
-    JSON file (https://www.reddit.com/user/{username}/saved.json) to grok what the fields mean (might help to paste it 
-    into a JSON-formatter first, like https://jsonformatter.curiousconcept.com/). ]#
+    The best you can do is probably just to glean what you can from the official docs and check out your own saved-
+    posts JSON file (https://www.reddit.com/user/{username}/saved.json) to grok what the fields mean (might help to 
+    paste it into a JSON-formatter first, like https://jsonformatter.curiousconcept.com/). ]#
     let post_objects = json_data["children"]
     for post_object in post_objects:
         let post = post_object["data"]
