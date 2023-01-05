@@ -99,12 +99,11 @@ when isMainModule:
     
     # Can only fetch a limited number of posts at a time, so keep fetching til we get them all
     var after = readInSavedPosts(base_fetch_url, saved_posts)
-    stdout.write fmt"Fetched {saved_posts.len} so far. "
+    stdout.write fmt"Fetched {saved_posts.len} posts"
     while not after.isEmptyOrWhitespace():
-        echo "Fetching more..."
+        echo ", fetching more..."
         after = readInSavedPosts(fmt"{base_fetch_url}&after={after}&count={saved_posts.len}", saved_posts)
-        #debugEcho fmt"after = '{after}'"
-        stdout.write fmt"Fetched {saved_posts.len} so far. "
+        stdout.write fmt"Fetched {saved_posts.len} posts"
     printPosts(saved_posts)
     echo "\nAll saved posts fetched\n"
 
