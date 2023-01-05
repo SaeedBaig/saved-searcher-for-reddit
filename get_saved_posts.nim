@@ -179,13 +179,14 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
         # Parse data into RedditPost object and add it to the list
         output_list.add(RedditPost(
             sub: post["subreddit_name_prefixed"].getStr(),
-            main_text: case post_type 
+            main_text: (case post_type 
                 of $Link:      # Normal saved post
                     post["title"].getStr() 
                 of $Comment:   # Saved comment; no title
                     post["body"].getStr() 
                 else:
-                    quit("ERROR: Encountered a post that's not a link or a comment; don't know how to handle it"),
+                    quit("ERROR: Encountered a post that's not a link or a comment; don't know how to handle it")
+            ),
             url: fmt"https://www.reddit.com{post[""permalink""].getStr()}"
         ))
 
