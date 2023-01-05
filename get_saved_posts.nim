@@ -38,6 +38,7 @@ type RedditEntity = enum
 # Helper functions
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
 proc printPosts(posts: seq[RedditPost])
+proc printPost(post: RedditPost)
 
 
 when isMainModule:
@@ -204,8 +205,13 @@ proc printPosts(posts: seq[RedditPost]) =
         inc(counter)
         echo fmt"#{counter}"
         echo()
-        styledEcho fmt"{post.sub} - ", styleBright, fmt"'{post.main_text}'"   # bold the post's maintext
-        echo post.url
+        printPost post
         echo POST_SEPARATOR
         echo()
     echo "(end)"
+
+
+## Pretty-print reddit post to stdout
+proc printPost(post: RedditPost) =
+    styledEcho fmt"{post.sub} - ", styleBright, fmt"'{post.main_text}'"   # bold the post's maintext
+    echo post.url
