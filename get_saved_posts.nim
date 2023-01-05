@@ -197,6 +197,10 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
 
 ## Pretty-print reddit posts to stdout
 proc printPosts(posts: seq[RedditPost]) =
+    if posts.len == 0:
+        echo "(no results)"
+        return
+    # else
     var counter = 0   # for numbering output
     for post in posts:
         inc(counter)
