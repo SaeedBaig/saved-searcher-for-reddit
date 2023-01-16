@@ -15,6 +15,37 @@
 * Comments on the end of a line of code are preceded by 3 spaces (e.g. `sub: string   # subreddit`)
 * Comments for readability have a leading space (e.g. `# Helper funcs`); comments commenting out potentially-useful 
   code have no leading space (e.g. `#debugEcho fmt"my_var = '{my_var}'"`)
+* When using the value "returned" from a control-flow block, enclose the block in parentheses for readability (even though it's not necessary).
+
+If the control-flow block isn't used for its expression, you can write it as normal without parentheses. E.g.
+```nim
+case roman_char
+    of 'I':
+        return 1
+    of 'V':
+        return 5
+    of 'X':
+        return 10
+    ...
+    else:
+        quit("Error: invalid char")
+```
+However, when using the evaluated value of a control-flow block as an expression (e.g. as a return value, or assigning to a variable), enclose it in parentheses for readability (so it's clear you're treating this as an expression instead of just typical procedural code). E.g.
+```nim
+return (case roman_char
+    of 'I':
+        1
+    of 'V':
+        5
+    of 'X':
+        10
+    ...
+    else:
+        quit("Error: invalid char")
+  )
+```
+(this latter formulation would also be preferred cause it's DRYer btw - so do use parantheses where helpful).
+
 * Use the most appropriate syntactic-sugar (e.g. use an enum to represent exhaustive fixed options rather than multiple constants; use a switch statement instead of an if-else-chain where possible)
 
 ## Semantic
