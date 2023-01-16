@@ -49,9 +49,9 @@ when isMainModule:
     let Reddit_password = getPassword()
     echo "\nFetching your saved posts, this may take a moment..."
 
-    #[ Setup our header info:
+    #[Setup our header info:
     - A brief description of our app
-    - HTTP Basic Auth with the Reddit-dev secrets ("Basic <CLIENT ID>:<CLIENT SECRET>") ]#
+    - HTTP Basic Auth with the Reddit-dev secrets ("Basic <CLIENT ID>:<CLIENT SECRET>")]#
     let client = newHttpClient()
     client.headers = newHttpHeaders({
         "User-Agent": APP_NAME,
@@ -59,8 +59,8 @@ when isMainModule:
     })
 
     # Send our request for an OAuth token (valid for 24 hours)
-    # Since we fetch all the saved posts into memory ASAP and don't need to access the API afterwards, token 
-    # expiry shouldn't be a problem
+    #[Since we fetch all the saved posts into memory ASAP and don't need to access the API afterwards, token expiry 
+    shouldn't be a problem]#
     let auth_response = client.postContent(
         "https://www.reddit.com/api/v1/access_token",
         multipart=newMultipartData({"grant_type":"password", "username":Reddit_username, "password":Reddit_password})
@@ -86,7 +86,7 @@ when isMainModule:
     # Finally can fetch saved posts
     var saved_posts: seq[RedditPost]
 
-    #[ Parameters for fetch URL are:
+    #[Parameters for fetch URL are:
     - limit:    maximum #posts to fetch in this request (max Reddit allows is 100)
     - show:     optional; if "all", filters such as "hide links that I have voted on" will be disabled
     - raw_json: optional; if "1", gives literal chars for '<', '>' and '&' (instead of legacy &lt; &gt; and &amp;)
@@ -150,10 +150,10 @@ when isMainModule:
         )
 
         printPosts(saved_posts.filter(search_criteria))
-        #[ I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
+        #[I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
         faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
         (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
-        wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration. ]#
+        wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration.]#
         echo()
         echo()
 
@@ -166,12 +166,12 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
     let json_data = response.parseJson()["data"]
 
     # Now to parse them into RedditPost objects and add them to `output_list`
-    #[ There's apparently not much official documentation about Reddit's JSON; the most I could find was this archived 
+    #[There's apparently not much official documentation about Reddit's JSON; the most I could find was this archived 
     wiki https://github.com/reddit-archive/reddit/wiki/JSON last edited in 2016
 
     The best you can do is probably just to glean what you can from the official docs and check out your own saved-
     posts JSON file (https://www.reddit.com/user/{username}/saved.json) to grok what the fields mean (might help to 
-    paste it into a JSON-formatter first, like https://jsonformatter.curiousconcept.com/). ]#
+    paste it into a JSON-formatter first, like https://jsonformatter.curiousconcept.com/).]#
     let post_objects = json_data["children"]
     for post_object in post_objects:
         let post = post_object["data"]
