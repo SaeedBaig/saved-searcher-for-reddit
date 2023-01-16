@@ -19,3 +19,9 @@ proc getPassword*(): string =
             stdout.write("*")
     echo()
     return password.strip()
+
+## echo multiple times
+# (just for consistency in stdout content breaks, and one place to edit it if we want it to be more)
+proc bigEcho*() =
+    echo()
+    echo()

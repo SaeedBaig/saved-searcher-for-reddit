@@ -11,7 +11,7 @@ from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledW
 from sequtils import filter
 from sugar import `->`, `=>`   # syntactic sugar for anonymous-proc signatures & definitions respectively
 
-from misc_utils import getPassword
+from misc_utils import getPassword, bigEcho
 
 # A brief description of our app ("<app name>/<app version>"); can be anything
 const APP_NAME      = "SavedSearcher/0.0.1"
@@ -115,8 +115,7 @@ when isMainModule:
 
         if search_input == "":
             printPosts(saved_posts)
-            echo()
-            echo()
+            bigEcho()
             continue
         # else
 
@@ -126,8 +125,7 @@ when isMainModule:
             stdout.write "\nSorry, I don't understand... "
             stdout.write "Enter 'p' to search by post, 's' to search by subreddit, or 'b' to search by both: "
 
-        echo()
-        echo()
+        bigEcho()
         echo BANNER
         let header = fmt" Search results for ""{search_input}"" "
         echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
@@ -154,8 +152,7 @@ when isMainModule:
         faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
         (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
         wouldn't even be noticeable; so I'll stick to the simplicity & extensability of iteration.]#
-        echo()
-        echo()
+        bigEcho()
 
 
 ## Fetch saved posts via Reddit API and parse them into the RedditPost-objects list; return `after` field from JSON
