@@ -53,10 +53,25 @@ return (case roman_char
 * Limit scope of variables as much as possible (e.g. if a variable is only needed inside a for-loop, declare it inside the for-loop)
 * Import only what's needed (e.g. `from base64 import encode` instead of `import std/base64`)
 * Prefer unnamed expressions to single-use variables to avoid ambiguity if said variable is needed again later (e.g. `client.headers = newHttpHeaders({"User-Agent": APP_NAME})` instead of `let header = {"User-Agent": APP_NAME}; client.headers = newHttpHeaders(header)`)
-* Don't repeat computations; store repeatedly-used results in variables (e.g. instead of `let title = response.parseJson()["title"]; let link = response.parseJson()["link"]`, do `let json_data = response.parseJson(); let title = json_data["title"]; let link = json_data["link"]`)
+* Don't repeat computations needlessly; store repeatedly-used results in variables (e.g. instead of `let title = response.parseJson()["title"]; let link = response.parseJson()["link"]`, do `let json_data = response.parseJson(); let title = json_data["title"]; let link = json_data["link"]`)
 * Prefer string interpolation to concatenation for readability (e.g. `echo fmt"token = {token}"` instead of `echo "token = " & token`)
-* Use the most appropriate data structure for the job (e.g. Know that list is a fixed size? Make it an array; No duplicates in that list and order not important? Make it a set)
+* Use the most appropriate data structure for the job (e.g. Know that list is a fixed size? Make it an array; No duplicates in that list and order doesn't matter? Make it a set)
 
-**Golden Rule:** Use the expression that best signals the intent of the code (e.g. `inc(counter)` better signals intent than just `counter += 1`; `list.isEmpty()` better signals intent than just `list.len == 0`)
+**Golden Rule:** Use the expression that best signals the intent of the code; for example, `inc(counter)` better signals intent than just `counter += 1`; `list.isEmpty()` better signals intent than just `list.len == 0`, etc.
 
-_Reminder: These are just guidelines, not laws; can deviate from any of these when you think there's a good reason to do so (e.g. may use single-use variable as an intermediate result in some complex calculation) - use your best judgement._
+---
+
+Reminder: These are just guidelines, not laws; you can deviate from any of these when you think there's a good reason to do so - especially when they might conflict with each other. For example, the guideline to "limit scope of variables" might conflict with the guideline to "not repeat computations needlessly"; prioritizing the former, we might write code like this:
+```nim
+for post in posts:
+    if post.text == normalized(search_text):
+        print(post)
+```
+But prioritizing the latter, we might write code like this:
+```nim
+let normalized_search = normalized(search_text)
+for post in posts:
+    if post.text == normalized_search:
+        print(post)
+```
+Which one's preferable? It's up to your discretion; if a computation like `normalized(search_text)` is particularly expensive, it might be best to prioritize performance by evaluating it before the loop; but if it isn't needed outside the loop, we might prefer prioritizing limited-scope for readability; take it on a case-by-case basis and use your best judgement.
