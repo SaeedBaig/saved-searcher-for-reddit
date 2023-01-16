@@ -11,6 +11,7 @@
 * Call library procs with object syntax (`foo.bar()`), custom procs with functional syntax (`bar(foo)`)
 * Differentiate between prints intended for end-user VS prints intended for debugging with `echo` VS `debugEcho`
 * Procs called with no parentheses when used for side-effects (e.g. `capitalize name`), *with* parentheses when called for return value (e.g. `let name = capitalized(input)`)
+* Procs should have an explanatory documentation comment above them (i.e. comment starting with `##`)
 * Comments on the end of a line of code are preceded by 3 spaces (e.g. `sub: string   # subreddit`)
 * Comments for readability have a leading space (e.g. `# Helper funcs`); comments commenting out potentially-useful 
   code have no leading space (e.g. `#debugEcho fmt"my_var = '{my_var}'"`)
