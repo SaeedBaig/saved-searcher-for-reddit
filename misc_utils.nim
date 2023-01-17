@@ -1,9 +1,7 @@
 #[ Miscellaneous helper functions that felt too unrelated/inappropriate to add in the main file ]#
 
 from terminal import getch
-from strutils import strip, join
-from sequtils import map
-from strformat import fmt
+from strutils import strip
 
 
 ## Read in password, typing '*' instead of echoing output
@@ -31,21 +29,15 @@ proc bigEcho*() =
     echo()
 
 
-## Get a 1-char option from user of what they want to do
-## (with a list of provided options & their explanatory strings given for prompting)
-proc getSearchMode*(options: seq[(char, string)]): char = 
-    # e.g. "Would you like to search for posts (p), subreddits (s) or both (b)? "
-    let formatted_options = map(options, proc(option: (char, string)): string = fmt"{option[1]} ({option[0]})")
-    stdout.write fmt"Would you like to search for {formatted_options[0 .. ^2].join("", "")} or {formatted_options[^1]}? "
+## Read 1 char from stdin of want to do
+## (with a list of valid chars & the prompt string to display to the user)
+proc promptSearchMode*(valid_chars: set[char], prompt_msg: string): char = 
+    stdout.write prompt_msg; var search_mode = getch()
 
-    # Just get the chars (option[0]s)
-    let allowed_searchmodes = map(options, proc(option: (char, string)): char = option[0])
-
-    var search_mode: char
-    while (search_mode = getch(); search_mode) notin allowed_searchmodes:
-        # e.g. "Enter 'p' to search for posts, 's' to search for subreddits, or 'b' to search for both: "
+    # If the user doesn't enter a valid char, just keep prompting them til they do
+    while search_mode notin valid_chars:
         stdout.write "\nSorry, I don't understand... "
-        let formatted_options = map(options, proc(option: (char, string)): string = fmt"'{option[0]}' to search for {option[1]}")
-        stdout.write fmt"Enter {formatted_options[0 .. ^2].join("", "")} or {formatted_options[^1]}: "
+        stdout.write prompt_msg; search_mode = getch()
 
+    echo()
     return search_mode
