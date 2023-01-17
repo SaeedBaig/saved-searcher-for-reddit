@@ -6,7 +6,7 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 import std/[httpclient, json]
 from base64 import encode
 from strformat import fmt
-from strutils import isEmptyOrWhitespace, normalize, contains, repeat
+from strutils import isEmptyOrWhitespace, normalize, contains, repeat, parseEnum
 from terminal import getch, styleBright, styledEcho, styledWriteLine   # styledWriteLine needed for styledEcho to work
 from sequtils import filter
 from sugar import `->`, `=>`   # syntactic sugar for anonymous-proc signatures & definitions respectively
@@ -19,21 +19,24 @@ const APP_NAME      = "SavedSearcher/0.0.1"
 const APP_ID        = "oFwLNz7t3wUvhkV1atjQfQ"            # personal use script
 const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
-# Consts for printing (just eyeballed what looked good)
+# Consts for printing to stdout (just eyeballed what looked good in terminal)
+# TODO: Use some stdlib to get terminal width and calculate widths as a fraction of that
 const SEPARATOR_WIDTH = 110
 const HEADER_PREFIX_WIDTH = 23
 const BANNER = "#".repeat(SEPARATOR_WIDTH)
 const POST_SEPARATOR = "_".repeat(SEPARATOR_WIDTH)
+
+# Type prefixes for different types of Reddit content (https://www.reddit.com/dev/api/#type_prefixes)
+type RedditEntity = enum
+    Comment="t1", Post="t3"
+# (there are other types, but for our purposes only need Comment and Post)
 
 # Helper class to encapsulate the relevant post details we want to display
 type RedditPost = object
     sub: string   # subreddit
     main_text: string
     url: string
-
-# Type prefixes for different types of Reddit content (https://www.reddit.com/dev/api/#type_prefixes)
-type RedditEntity = enum
-    Comment="t1", Account="t2", Link="t3", Message="t4", Subreddit="t5", Award="t6"
+    reddit_type: RedditEntity
 
 # Helper functions
 proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): string
@@ -125,13 +128,6 @@ when isMainModule:
             stdout.write "\nSorry, I don't understand... "
             stdout.write "Enter 'p' to search by post, 's' to search by subreddit, or 'b' to search by both: "
 
-        bigEcho()
-        echo BANNER
-        let header = fmt" Search results for ""{search_input}"" "
-        echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
-        echo BANNER
-        echo()
-
         let normalized_input = normalize(search_input)   # for case-insensitive searching
         let search_criteria: RedditPost->bool = (case search_mode   # choose anonymous proc for filtering saved-posts
             of 'p':
@@ -146,8 +142,27 @@ when isMainModule:
             else:
                 quit("Error: `search_mode` somehow not one of 'p', 's' or 'b' - dont know what to do")
         )
+        var search_results = saved_posts.filter(search_criteria)
 
-        printPosts(saved_posts.filter(search_criteria))
+        if search_mode in ['p', 'b']:
+            # TODO: Refactor this into a proc
+            stdout.write "\nWould you like to search for saved comments (c), posts (p) or both (b)? "
+            while (search_mode = getch(); search_mode) notin ['c', 'p', 'b']:
+                stdout.write "\nSorry, I don't understand... "
+                stdout.write "Enter 'c' to search by comment, 'p' to search by post, or 'b' to search by both: "
+            # Dont have to filter if they entered 'b' for both
+            if search_mode == 'c':
+                search_results = search_results.filter((post:RedditPost) => post.reddit_type==Comment)
+            elif search_mode == 'p':
+                search_results = search_results.filter((post:RedditPost) => post.reddit_type==Post)
+        
+        bigEcho()
+        echo BANNER
+        let header = fmt" Search results for ""{search_input}"" "
+        echo "#".repeat(HEADER_PREFIX_WIDTH) & header & "#".repeat(SEPARATOR_WIDTH - HEADER_PREFIX_WIDTH - header.len)
+        echo BANNER
+        echo()
+        printPosts(search_results)
         #[I had considered doing something more clever, like using a hashmap of subreddit-names to saved-posts for 
         faster searching by subreddit. But since Reddit only allows users to have a maximum of 1000 saved posts anyways 
         (which is nothing for modern CPUs), the speed boost from a map compared to straightforward iteration probably 
@@ -178,14 +193,15 @@ proc readInSavedPosts(fetch_url: string, output_list: var seq[RedditPost]): stri
         output_list.add(RedditPost(
             sub: post["subreddit_name_prefixed"].getStr(),
             main_text: (case post_type 
-                of $Link:      # Normal saved post
+                of $Post:      # Normal saved post
                     post["title"].getStr() 
                 of $Comment:   # Saved comment; no title
                     post["body"].getStr() 
                 else:
                     quit("ERROR: Encountered a post that's not a link or a comment; don't know how to handle it")
             ),
-            url: fmt"https://www.reddit.com{post[""permalink""].getStr()}"
+            url: fmt"https://www.reddit.com{post[""permalink""].getStr()}",
+            reddit_type: parseEnum[RedditEntity](post_type)
         ))
 
     return json_data["after"].getStr()
