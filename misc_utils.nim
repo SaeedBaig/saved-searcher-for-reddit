@@ -29,7 +29,7 @@ proc bigEcho*() =
     echo()
 
 
-## Read 1 char from stdin of want to do
+## Read 1 char from stdin for what to do
 ## (with a list of valid chars & the prompt string to display to the user)
 proc promptSearchMode*(valid_chars: set[char], prompt_msg: string): char = 
     stdout.write prompt_msg; var search_mode = getch()
