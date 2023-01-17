@@ -51,15 +51,12 @@ Enter search text (Ctrl+C to quit):
 ```
 
 ## Building
-Compile with Nim (v1.6.10+ needed for [proper OpenSSL 3 support](https://www.mail-archive.com/nim-general@lists.nim-lang.org/msg22302.html); use `choosenim` to upgrade if Nim already installed):
 ```sh
-nim c -d:ssl --opt:speed get_saved_posts.nim
-```
-
-or for less verbiage:
-
-```sh
-nim c --verbosity:0 --hints:off -d:ssl --opt:speed get_saved_posts.nim
+# Install dependencies (specified in .nimble file)
+nimble install -dy
+# Build main file (flags already in nim.cfg file)
+cd src/
+nim c saved_searcher_for_reddit.nim
 ```
 
 ## TODO
