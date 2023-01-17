@@ -27,9 +27,8 @@ const BANNER = "#".repeat(SEPARATOR_WIDTH)
 const POST_SEPARATOR = "_".repeat(SEPARATOR_WIDTH)
 
 # Type prefixes for different types of Reddit content (https://www.reddit.com/dev/api/#type_prefixes)
-type RedditEntity = enum
-    Comment="t1", Post="t3"
-# (there are other types, but for our purposes only need Comment and Post)
+type RedditEntity = enum Comment="t1", Post="t3"
+# (there are other types, but for our purposes only need t1 and t3)
 
 # Helper class to encapsulate the relevant post details we want to display
 type RedditPost = object
