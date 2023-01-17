@@ -3,7 +3,8 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 (compile with flag `-d:ssl` so the HTTP-POST requests work)
 ]#
 
-import std/[httpclient, json]
+import httpclient
+from json import parseJson, hasKey, getStr, `[]`, items
 from base64 import encode
 from strformat import fmt
 from strutils import isEmptyOrWhitespace, normalize, contains, repeat, parseEnum
