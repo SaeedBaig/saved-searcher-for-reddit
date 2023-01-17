@@ -3,7 +3,7 @@ Search a given Reddit user's saved posts, fetched via Reddit's official REST API
 (compile with flag `-d:ssl` so the HTTP-POST requests work)
 ]#
 
-import httpclient
+from httpclient import newHttpClient, newHttpHeaders, postContent, newMultipartData, getContent
 from json import parseJson, hasKey, getStr, `[]`, items
 from base64 import encode
 from strformat import fmt
