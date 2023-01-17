@@ -1,5 +1,5 @@
 # Saved-Post Searcher For Reddit
-A simple CLI app to search your saved Reddit posts (WIP, but functional)
+A simple CLI app to search your saved Reddit posts (WIP)
 
 ## Usage
 Enter your details once to fetch all your saved posts via Reddit's API, then interactively search them in a REPL loop til you quit.
