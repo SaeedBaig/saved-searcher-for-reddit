@@ -60,9 +60,7 @@ nim c saved_searcher_for_reddit.nim
 ```
 
 ## TODO
-- Add command history for up-down arrow (like bash history)
-- Add argument-parsing to alternatively use as single CLI command (e.g. `reddit_saved_search -u username -p password -r subreddit1 subreddit2 subreddit 3 ...`)
-- Add `-h` flag for help
-- Add `-q` (quiet) flag for no extraneous output (for piping, dumping output to file, etc)
-- Make binary releases for different platforms so users don't have to compile it themselves (don't forget to compile with `-d:release`!)
-- (one day) GUI app with search bar and image-previews and stuff
+- GUI app with search bar and image-previews and stuff
+	- Fix app icon (make proper/bigger size - 64 instead of 32)
+- Fix Reddit-API permissions so app can work for other users
+- Make binary releases for different platforms so users don't have to compile from source (don't forget to compile with `-d:release`!)
