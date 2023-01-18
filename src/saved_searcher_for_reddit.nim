@@ -19,10 +19,10 @@ const APP_SECRET    = "HhjA4bNm7KbmhcKBgjEKAqgHi0et4A"    # secret
 
 # Consts for printing to stdout (just eyeballed what looked good in terminal)
 # TODO: Use some stdlib to get terminal width and calculate widths as a fraction of that
-const SEPARATOR_WIDTH = 110
-const HEADER_PREFIX_WIDTH = 23
-const BANNER = "#".repeat(SEPARATOR_WIDTH)
-const POST_SEPARATOR = "_".repeat(SEPARATOR_WIDTH)
+const SEPARATOR_WIDTH       = 110
+const BANNER                = "#".repeat(SEPARATOR_WIDTH)
+const POST_SEPARATOR        = "_".repeat(SEPARATOR_WIDTH)
+const HEADER_PREFIX_WIDTH   = 23
 
 # Type prefixes for different types of Reddit content (https://www.reddit.com/dev/api/#type_prefixes)
 type RedditEntity = enum Comment="t1", Post="t3"
