@@ -2,7 +2,7 @@
 A simple CLI app to search your saved Reddit posts; WIP (doesn't work for other Reddit accounts yet)
 
 ## Usage
-Enter your details once to fetch all your saved posts via Reddit's API, then interactively search them in a REPL loop til you quit.
+Enter your details once to fetch all your saved posts via Reddit's API, then interactively search them in a REPL til you quit the program.
 
 ### Example
 ```sh
@@ -51,16 +51,15 @@ Enter search text (Ctrl+C to quit):
 ```
 
 ## Building
+Compile with Nim v1.6.10+ ([needed for proper OpenSSL 3 support](https://www.mail-archive.com/nim-general@lists.nim-lang.org/msg22302.html)):
 ```sh
-# Install dependencies (specified in .nimble file)
-nimble install -dy
 # Build main file (flags already in nim.cfg file)
 cd src/
 nim c saved_searcher_for_reddit.nim
 ```
+(use `choosenim` to upgrade Nim if you already have it installed)
 
 ## TODO
-- GUI app with search bar and image-previews and stuff
-	- Fix app icon (make proper/bigger size - 64 instead of 32)
+- GUI app with search bar and image-previews and stuff (in other branch)
 - Fix Reddit-API permissions so app can work for other users
 - Make binary releases for different platforms so users don't have to compile from source (don't forget to compile with `-d:release`!)
