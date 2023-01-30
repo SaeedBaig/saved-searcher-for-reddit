@@ -20,14 +20,14 @@ when isMainModule:
     # Create main window
     let window = newWindow("Saved-Post Searcher For Reddit")
     window.iconPath = "assets/app_icon.svg"
-    window.width = 500
+    window.width = 800
     window.height = 600
     let main_window_container = newLayoutContainer(Layout_Vertical)
     window.add(main_window_container)
 
     # TODO: Make screen to enter username & password
     let saved_posts = fetchSavedPosts(reddit_username, reddit_password)   # TODO: Add error-handling
-    for post in saved_posts:
+    for post in saved_posts[0..99]:   # Just 100 posts at a time (TODO: add pagination for full results)
         # Create post container
         let post_container = newLayoutContainer(Layout_Horizontal)
         post_container.widthMode = WidthMode_Expand   # expand post-width to equal window-width

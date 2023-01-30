@@ -2,7 +2,7 @@
 A simple CLI app to search your saved Reddit posts; WIP (doesn't work for other Reddit accounts yet)
 
 ## Usage
-Enter your details once to fetch all your saved posts via Reddit's API, then interactively search them in a REPL loop til you quit.
+Enter your details once to fetch all your saved posts via Reddit's API, then interactively search them in a REPL til you quit.
 
 ### Example
 ```sh
@@ -61,4 +61,8 @@ nim c gui.nim
 
 ## TODO
 - GUI app with search bar and image-previews and stuff
+	- Show image previews for applicable posts
+	- Add pagination to results (probably 100 at a time)
+	- Make posts clickable links that lead to the site
+	- Look into Label text getting cut off randomly in posts
 	- Fix app icon (make proper/bigger size - 64 instead of 32)
