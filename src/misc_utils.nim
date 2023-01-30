@@ -20,24 +20,3 @@ proc getPassword*(): string =
             stdout.write("*")
     echo()
     return password.strip()
-
-
-## echo multiple times
-# (just for consistency in stdout content breaks, and one place to edit it if we want it to be more)
-proc bigEcho*() =
-    echo()
-    echo()
-
-
-## Read 1 char from stdin for what to do
-## (with a list of valid chars & the prompt string to display to the user)
-proc promptSearchMode*(valid_chars: set[char], prompt_msg: string): char = 
-    stdout.write prompt_msg; var search_mode = getch()
-
-    # If the user doesn't enter a valid char, just keep prompting them til they do
-    while search_mode notin valid_chars:
-        stdout.write "\nSorry, I don't understand... "
-        stdout.write prompt_msg; search_mode = getch()
-
-    echo()
-    return search_mode

@@ -15,5 +15,5 @@ bin           = @["saved_searcher_for_reddit"]
 ## Use choosenim to upgrade if Nim already installed
 requires "nim >= 1.6.10"
 
-## Will uncomment this line once the GUI's ready
-#requires "nigui"
+## The GUI library we're using
+requires "nigui"

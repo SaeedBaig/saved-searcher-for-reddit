@@ -56,11 +56,9 @@ Enter search text (Ctrl+C to quit):
 nimble install -dy
 # Build main file (flags already in nim.cfg file)
 cd src/
-nim c saved_searcher_for_reddit.nim
+nim c gui.nim
 ```
 
 ## TODO
 - GUI app with search bar and image-previews and stuff
 	- Fix app icon (make proper/bigger size - 64 instead of 32)
-- Fix Reddit-API permissions so app can work for other users
-- Make binary releases for different platforms so users don't have to compile from source (don't forget to compile with `-d:release`!)
