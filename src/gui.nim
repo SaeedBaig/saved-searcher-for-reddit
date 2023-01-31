@@ -1,4 +1,4 @@
-#[ GUI POC for displaying Reddit posts (WIP) ]#
+#[ GUI for displaying Reddit posts ]#
 
 import nigui
 
@@ -20,33 +20,38 @@ when isMainModule:
     # Create main window
     let window = newWindow("Saved-Post Searcher For Reddit")
     window.iconPath = "assets/app_icon.svg"
-    window.width = 800
-    window.height = 600
+    window.width = 800.scaleToDpi
+    window.height = 600.scaleToDpi
     let main_window_container = newLayoutContainer(Layout_Vertical)
     window.add(main_window_container)
 
     # TODO: Make screen to enter username & password
     let saved_posts = fetchSavedPosts(reddit_username, reddit_password)   # TODO: Add error-handling
-    for post in saved_posts[0..99]:   # Just 100 posts at a time (TODO: add pagination for full results)
+
+    # Add posts to GUI
+    for post in saved_posts[0..20]:   # Just 20 posts at a time for now (TODO: add pagination for full results)
         # Create post container
         let post_container = newLayoutContainer(Layout_Horizontal)
         post_container.widthMode = WidthMode_Expand   # expand post-width to equal window-width
-        # Center post container's content
-        #post_container.xAlign = XAlign_Center
-        #post_container.yAlign = YAlign_Center
+
+        # Add subreddit
         post_container.frame = newFrame(post.sub)
 
-        const font_size: float = 20   # nigui expects font size to be float
+        # Add preview image (poc)
+        let control = newControl()
+        post_container.add(control)
+        # (necessary to specify widthMode and heightMode for it to render; TODO: Choose something other than Fill)
+        control.widthMode = WidthMode_Fill
+        control.heightMode = HeightMode_Fill
+        let preview = newImage()
+        preview.loadFromFile("assets/pepe.png")
+        control.onDraw = proc (event: DrawEvent) = event.control.canvas.drawImage(preview, width=160, height=100)
+        # TODO: Expand post container's height to be >= preview height
 
-        # Add button to post container
-        #[let button = newButton("Button")
-        button.fontSize = font_size
-        post_container.add(button)]#
-
-        # Add label to post container
-        let label = newLabel(post.main_text)
-        label.fontSize = font_size
-        post_container.add(label)
+        # Add post's text
+        let content = newLabel(post.main_text)
+        content.fontSize = 20
+        post_container.add(content)
 
         # Add post to window
         main_window_container.add(post_container)
