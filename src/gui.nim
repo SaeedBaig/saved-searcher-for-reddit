@@ -32,25 +32,31 @@ when isMainModule:
     for post in saved_posts[0..20]:   # Just 20 posts at a time for now (TODO: add pagination for full results)
         # Create post container
         let post_container = newLayoutContainer(Layout_Horizontal)
-        post_container.widthMode = WidthMode_Expand   # expand post-width to equal window-width
+        post_container.widthMode = WidthMode_Expand
 
         # Add subreddit
         post_container.frame = newFrame(post.sub)
 
         # Add preview image (poc)
-        let control = newControl()
-        post_container.add(control)
-        # (necessary to specify widthMode and heightMode for it to render; TODO: Choose something other than Fill)
-        control.widthMode = WidthMode_Fill
-        control.heightMode = HeightMode_Fill
-        let preview = newImage()
-        preview.loadFromFile("assets/pepe.png")
-        control.onDraw = proc (event: DrawEvent) = event.control.canvas.drawImage(preview, width=160, height=100)
-        # TODO: Expand post container's height to be >= preview height
+        let image_control = newControl()
+        post_container.add(image_control)
+        # Necessary to specify widthMode and heightMode for image to render
+        image_control.widthMode = WidthMode_Expand
+        image_control.heightMode = HeightMode_Expand
+        let image = newImage()
+        image.loadFromFile("assets/pepe.png")
+        const image_height = 100
+        image_control.onDraw = proc (event: DrawEvent) = 
+            # TODO: Auto-calculate width based on height to maintain image aspect ratio
+            event.control.canvas.drawImage(image, width=160, height=image_height)
+        
+        post_container.height = image_height + 35   # buffer
 
         # Add post's text
+        # TODO: Align text next to image
         let content = newLabel(post.main_text)
         content.fontSize = 20
+        content.widthMode = WidthMode_Fill
         post_container.add(content)
 
         # Add post to window
